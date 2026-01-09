@@ -136,8 +136,32 @@ SGMs, like DDPMs, generate samples iteratively from $bold(s)_theta (bold(x), T),
 - Langevin Monte Carlo guarantees that as $s_t -> 0$ and $N -> inf$, $bold(x)_0^((N))$ becomes a valid sample from the data distribution $q(bold(x)_0)$.
 - We can view this sampling as hill climbing the probability density using its estimated gradient.
 
+== Stochastic Differential Equations (Score SDEs)
+What does it mean to solve an ODE?
+- Consider ODE $(d x)/(d t) = f(x, t)$, $x(t_0) = x_0$.
+- Solution is a function $x:[t_0, T] -> bb(R)^d$ such that:
+  - $x(t)$ is differentiable,
+  - it satisfies the equation pointwise: $d/(d t) x(t) = f(x(t), t) forall t$,
+  - and satisfies the initial condition.
 
+What does it mean to solve an SDE?
+- Consider SDE $d X_t = f(X_t, t) d t + g(t) d W_t$, $X_t_0 = X_0$.
+- Solution is *not* a function, but a stochastic process ${X_t}_(t in [t_0,T])$, with each realization being a random path.
+  - The solution can be viewed as a probability law over paths, not a single curve.
+- Often, the solution is expressed in integral form (we get by simply integrating both sides of the original SDE), in this case $X_t = X_t_0 + integral_(t_0)^t f(X_s, s) d s + integral_(t_0)^t g(s) d W_s$.
 
+The "marginal" refers to the probability distribution of the random variable $bold(x) (t)$ at a single time $t$.
+
+When we say that the ODE has the same marginals as the SDE, we mean $forall t: cal(L) (X_t^"ODE") = cal(L) (X_t^"SDE")$, where:
+  - $X_t^"SDE"$ is the random variable at time $t$ from the SDE.
+  - $X_t^"ODE"$ is the random variable at time $t$ obtained by:
+    - sampling a *random initial condition*,
+    - then evolving it *deterministically* via the ODE.
+  - It does not mean that the ODE paths coincide with SDE paths, nor does it mean that for every SDE sample path there exists an ODE path that matches it.
+  - An SDE is *stochastic* as randomness is added to it on "every infinitesimal step" by another random variable---e.g. $bold(w)$, which is the standard Wiener process a.k.a. Brownian motion.
+  - With ODEs, randomness only appears once---that is, with the initial condition, with the evolution from that point being deterministic, but we can of course describe this evolution with a random variable encapsulating the random start.
+
+For diffusion models, the core use case of the reverse SDE/ODE is generating a sample from the data distribution, starting from random noise.
 
 
 
