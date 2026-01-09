@@ -191,5 +191,54 @@ We see that in both the reverse-time SDE and reverse-time ODE, we must know the 
 - To estimate the score function, we generalize the SGM score matching objective to continuous time: 
 $ EE_(t ~ cal(U)⟦0, T⟧, x_0 ~ q(x_0), x_t ~ q(x_t | x_0)) [lambda(t) ||s_theta (x_t, t) - nabla_(x_t) log q_t(x_t | x_0)||^2] $
 
+= Diffusion models with efficient sampling
+Sampling involves a large number of evaluation steps, and can be sped-up by learning-free, and learning-based approaches (learning as an additional process after the diffusion model has been trained).
 
+== Learning-free sampling
+Focus on reducing the number of discrete time steps, while minimizing discretization errors.
+
+=== SDE solvers
+Since the DDPM generatino process can be viewed as a particular discretization of the reverse-time SDE, we can apply SDE solving techniques.
+  - Noise-Conditional Score Networks (NCSNs) and Critically-Damped Langevin Diffusion (CLD) both solve the reverse-time SDE with inspirations from Langevin dynamics.
+  - In particular NCSNs leverage annealed Langevin dynamics (ALD).
+  - Sampling trajectories of ALD are not exact solutions to the reverse-time SDE, but have correct marginals, producing correct samples.
+  - ALD further improved by Consistent Annealed Sampling (CAS), a score-based Markov Chain Monte Carlo approach, with better scaling of time steps and added noise.
+
+One-step discretization of the forward SDE has the general form: $bold(x)_(i+1) = bold(x)_i + bold(f)_i (bold(x)_i) + bold(g)_i bold(z)_i$, $i = 0, 1, ..., N-1$, where $bold(z)_i ~ cal(N) (bold(0), bold(I))$, $bold(f)_i$ and $bold(g)_i$ are determined by drift/diffusion coefficients of the SDE and the discretization scheme.
+
+Reverse-time SDE diffusion discretization: $bold(x)_i = bold(x)_(i+1) - bold(f)_(i+1) (bold(x)_(i+1)) + bold(g)_(i+1)bold(g)_(i+1)^t bold(s)_theta (bold(x)_(i+1), bold(t)_(i+1)) + bold(g)_(i+1) bold(z)_i$, $i = 0, 1, ..., N-1$, which is similar to the discretization of the forward SDE.
+
+Another proposal is adaptive step sizes. The output of higher- and lower-order SDE solvers is compared. If both their outputs are similar, then the higher order result is used for the next denoising step (since it's using higher-order terms, and so is more accurate), and the step-size is increased.
+
+Predictor-corrector methods use the SDE solvers as the predictor, and iterative MCMC as the corrector. Numerical SDE solver produces course sample that is then corrected with score-based MCMC, which corrects the sample's marginal distribution.
+
+=== ODE Solvers
+Converge much faster than SDE solvers, but inferior sample quality.
+
+Denoising Diffusion Implicit Models (DDIM) originally motivated to extend DDPM to a non-Markovian case: $q(bold(x)_1, ..., bold(x)_T|bold(x)_0) = product_(t=1)^T q(bold(x)_t|bold(x)_(t-1), bold(x)_0)$ (Further details in DDIM paper).
+  - This formulation captures DDPM and DDIM as special cases.
+  - When $sigma_t^2 = 0$, the Markov chain learnt by DDIM to reverse this non-Markov diffusion process is fully deterministic.
+  - From DDIM, we also have generalized Denoising Diffusion Implicit Models (gDDIM), allowing for more general diffusion processes like Critically-Damped Langevin Diffusion (CLD) and PNDM.
+
+We can also use 2nd order methods, rather than Euler's method for sampling, which although requires an additional evaluation per timestep, leads to smaller discretization error, and thus samples of comparable/better quality, with fewer sampling steps.
+
+Diffusion Exponential Integrator Sampler and DPM-solver are even higher order integrators.
+
+== Learning-Based Sampling
+This involves partial steps, or training a sampler for the reverse process.
+
+Faster sampling speeds at the expense of slight degradation in sample quality.
+
+Learning-based sampling typically involves selecting steps by optimizing certain learning objectives instead of the hand-crafted steps used in learning-free approaches.
+
+=== Optimized Discretization
+Select the best $K$ time steps to maximize the training objective for DDPMs. Key is the observation that the DDPM objective can be broken down into a sum of individual terms, making it well-suited for dynamic programming.
+  - *However the variational lower bound used for DDPM training does not correlate well with sample quality.*
+  - Differentiable Diffusion Sampler Search addresses this issue by directly optimizing a common metric for sample quality called the Kernel Inception Distance (KID), and is made feasible with reparameterization and gradient rematerialization.
+
+=== Truncated Diffusion
+Start reverse denoising process with a non-Gaussian distribution. Samples from this distribution can be obtained efficiently from other pre-trained generative models, such as Variational Autoencoders (VAEs) or Generative Adversarial Networks (GANs).
+
+=== Knowledge Distillation
+Progressive Distillation involves distilling the full sampling process into a faster sampler requiring only half as many steps.
 
