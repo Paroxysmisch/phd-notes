@@ -162,6 +162,34 @@ When we say that the ODE has the same marginals as the SDE, we mean $forall t: c
   - With ODEs, randomness only appears once---that is, with the initial condition, with the evolution from that point being deterministic, but we can of course describe this evolution with a random variable encapsulating the random start.
 
 For diffusion models, the core use case of the reverse SDE/ODE is generating a sample from the data distribution, starting from random noise.
+- However, sampling with the reverse SDE injects noise at each step, and so the diffusion process cannot be reversed deterministically.
+- Non-deterministic reversal is fine for generation, but problematic for likelihood evaluation, invertible mappings, and deterministic control.
+- Reverse ODE solution is deterministic (apart from the initial seed, of course), and has (possibly) lower-variance generation.
+
+At a high-level, numerical ODE solvers work by essentially hill-climbing on the gradient, starting from an initial point (given by the initial condition(s)).
+- For example, given an ODE $(d x)/(d t) = v(x, t)$, $x(t_0) = x_0$, a numerical ODE solver constructs an approximate trajectory of points.
+- Time is discretized: $t_0 < t_1 < ... < t_N$
+- The solver advances: $x_(n+1) approx x_n + integral_(t_n)^(t_(n+1)) v(x(t), t) d t$.
+- The integral is approximated.
+
+Score SDE is the generalization of DDPMs and SGMs to the case of infinity time steps or noise levels, where the perturbation and denoising processes are solutions to SDEs.
+
+Data is perturbed to noise with a diffusion process governed by the following forward SDE: $d bold(x) = bold(f) (bold(x), t) d t + g(t) d bold(w)$, where $bold(f) (bold(x), t)$ and $g(t)$ are diffusion and drift functions, with bold(w) being a standard Wiener process.
+- The forward processes in DDPMs and SGMs are both discretizations of this SDE (the following hold as the total number of timesteps $T -> infinity$).
+  - For DDPM, $d bold(x) = -1/2 beta(t) bold(x) d t + sqrt(beta(t)) d bold(w)$.
+  - For SGM, $ d bold(x) = sqrt(d[sigma (t)^2]/(d t)) d bold(w)$. Since in SGM we generate the noise sample of the $t$th timestep directly from $bold(x)_0$, the diffusion process is not dependent on $bold(x)$.
+
+For any diffusion form given by the forward SDE above, it can be reversed by solving the following reverse-time SDE: $d bold(x) = [bold(f) (bold(x), t) - g(t)^2 nabla_x log q_t (bold(x))] d t + g(t) d overline(bold(w))$, where $overline(bold(w))$ is a standard Wiener process when time flows backwards.
+- Note that the solution trajectories of this reverse SDE shares the same marginal densities as those of the forward SDE.
+- *Importantly*, there exists the probability flow ODE, whose trajectories have the same marginals as the reverse-time SDE: $d bold(x) = [bold(f) (bold(x), t) - 1/2 g(t)^2 nabla_x log q_t (bold(x))] d t$.
+- Having the same marginals is important, as it allows sampling from the same data distribution.
+- $q_t (bold(x))$ denotes the distribution of $bold(x)_t$ in the forward process.
+
+We see that in both the reverse-time SDE and reverse-time ODE, we must know the score function at each time step $t$, $nabla_x log q_t (x)$.
+- Solving the ODE via numerical techniques such as annealed Langevin dynamics, numerical SDE/ODE solvers, and predictor-corrector methods (MCMC + numerical ODE/SDE solvers) amounts to sampling a trajectory a.k.a. generating a sample.
+- *Neural networks play the role of approximating this score function (like in SGMs).*
+- To estimate the score function, we generalize the SGM score matching objective to continuous time: 
+$ EE_(t ~ cal(U)⟦0, T⟧, x_0 ~ q(x_0), x_t ~ q(x_t | x_0)) [lambda(t) ||s_theta (x_t, t) - nabla_(x_t) log q_t(x_t | x_0)||^2] $
 
 
 
