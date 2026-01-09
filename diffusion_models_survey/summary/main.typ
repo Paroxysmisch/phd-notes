@@ -103,6 +103,40 @@ $bold(epsilon)_theta (bold(x)_t, t)$ represents the model predicting the noise v
 
 Commonly used training objective, with a positive weighting function $lambda (t)$ is: $bb(E)_(t ~ cal(U)[[1, T]], bold(x)_0 ~ q(bold(x)_0), bold(epsilon) ~ cal(N)(bold(0), bold(I))) [lambda (t)||bold(epsilon) - bold(epsilon)_theta (bold(x)_t, t)||^2]$.
 
+== Score-Based Generative Models (SGMs)
+For a probability density function $p(x)$, its score function (a.k.a. Stein score) is the gradient of the log probability density $nabla_x log p(x)$.
+- Unlike Fisher score ($nabla_theta log p_theta (x)$), Stein score is a function of the data $x$.
+- Stein score can be viewed as a vector field pointing along direction in data-space where the probability function has the largest growth rate.
+
+With SGMs, we get the neural network to approximate this score function, conditioned on a particular noise level.
+- Generating samples for inference involves chaining the score function neural approximation at decreasing noise levels.
+- Sampling can be performed with various score-based sampling approaches, including Langevin Monte Carlo, Stochastic Differential Equations (SDEs), Ordinary Differential Equations (ODEs), and their various combinations.
+
+To train the neural network, we take a real data point and perturb it with a sequence of intensifying Gaussian noise.
+- Since we are noising the data (from the initial data point $bold(x)_0$, so $q(bold(x)_t|bold(x)_0) = cal(N) (bold(x)_t;bold(x)_0, sigma_t^2 I)$, we know the direction where the probability function has highest growth rate, and so we can perform supervised training with the neural network.
+- Learning from perturbed data points can be done using score matching, denoising score matching, and sliced score matching.
+- For example, with denoising score matching:
+$ EE_(t ~ cal(U)⟦1, T⟧, x_0 ~ q(x_0), x_t ~ q(x_t | x_0)) [lambda(t) sigma_t^2 ||nabla_(x_t) log q(x_t) - s_theta (x_t, t)||^2] $
+
+$ = EE_(t ~ cal(U)⟦1, T⟧, x_0 ~ q(x_0), x_t ~ q(x_t | x_0)) [lambda(t) sigma_t^2 ||nabla_(x_t) log q(x_t | x_0) - s_theta (x_t, t)||^2] + "const" $
+
+$ = EE_(t ~ cal(U)⟦1, T⟧, x_0 ~ q(x_0), x_t ~ q(x_t | x_0)) [lambda(t) ||- (x_t - x_0) / sigma_t - sigma_t s_theta (x_t, t)||^2] + "const" $
+
+$ = EE_(t ~ cal(U)⟦1, T⟧, x_0 ~ q(x_0), epsilon ~ cal(N)(0, I)) [lambda(t) ||epsilon + sigma_t s_theta (x_t, t)||^2] + "const," $
+- If we set $bold(epsilon)_theta (bold(x), t) = - sigma bold(s)_theta (bold(x), t)$, we see that the training objectives of DDPMs and SGMs are equivalent ($bold(s)_theta (bold(x)_t, t)^2$ is just the neural network approximating the score function, while being conditioned on the timestep).
+
+The key property about SGMs is that training and sampling are completely decoupled.
+
+SGMs, like DDPMs, generate samples iteratively from $bold(s)_theta (bold(x), T), bold(s)_theta (bold(x), T-1), ..., bold(s)_theta (bold(x), 0)$.
+- One method for sampling is annealed Langevin dynamics (ALD). Note that there are $N$ iterations *per timestep*, with $s_t > 0$ step size.
+- ALD initialized to $bold(x)_T^((N)) ~ cal(N) (bold(0), bold(I))$, then applying Langevin Monte Carlo for $t = T, T-1, ..., 1$ for $0 <= t < T$.
+- In Langevin Monte Carlo, we start with $bold(x)_t^((0)) = bold(x)_(t+1)^((N))$, with the following update rule for $i = 0, 1, ..., N-1$:
+  - $bold(epsilon)^((i)) <- N (bold(0), bold(I))$
+  - $bold(x)_t^((i+1)) <- bold(x)_t^((i)) + 1/2 s_t bold(s)_theta (bold(x)_t^((i)), t) + sqrt(s_t) bold(epsilon)^((i))$
+- Langevin Monte Carlo guarantees that as $s_t -> 0$ and $N -> inf$, $bold(x)_0^((N))$ becomes a valid sample from the data distribution $q(bold(x)_0)$.
+- We can view this sampling as hill climbing the probability density using its estimated gradient.
+
+
 
 
 
