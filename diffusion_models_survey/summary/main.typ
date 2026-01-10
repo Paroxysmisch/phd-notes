@@ -270,15 +270,17 @@ A learnt forward noise schedule may be useful because:
 - it allows flexibility to adapt to the data distribution e.g. it may be harder to denoise certain regions in the data, such as sharp edges in images---we can thus allocate noise addition more intelligently.
 - the standard loss used is weighted MSE during noise prediction, but the weighting depends on the noise schedule $beta_t$, and so tiny noise can give weak gradients, but pure noise can give wild gradients.
 - Learning the noise schedule $beta_t$ helps optimize the gradient flow, and the iDDPM authors give a formulation of the loss that only depends on the signal-to-noise ratio $R(t) eq.triple overline(alpha)_t^2 / sigma_t^2$:
-  - $ L_"VLB" = -bb(E)_bold(x)_0 underbrace("KL"(q(bold(x)_T|bold(x)_0)||p(bold(x)_T)), "Ensure noising model actually \n results in us getting our prior \ndistribution e.g. Gaussian at \nthe end of the noising \nforward process") + bb(E)_(bold(x)_0, bold(x)_1)log p(bold(x)_0|bold(x)_1) - underbrace(1/2 bb(E)_(bold(x)_0, epsilon ~ cal(N) (0, bold(I))) integral_(R_min = R(T))^(R_max = R(1))||bold(x)_0 - accent(bold(x), ~)_theta (bold(x)_v, v)||_2^2 d v, L_D) $
+  - $
+      L_"VLB" = -bb(E)_bold(x)_0 underbrace("KL"(q(bold(x)_T|bold(x)_0)||p(bold(x)_T)), "Ensure noising model actually \n results in us getting our prior \ndistribution e.g. Gaussian at \nthe end of the noising \nforward process") + bb(E)_(bold(x)_0, bold(x)_1)log p(bold(x)_0|bold(x)_1) - underbrace(1/2 bb(E)_(bold(x)_0, epsilon ~ cal(N) (0, bold(I))) integral_(R_min = R(T))^(R_max = R(1))||bold(x)_0 - accent(bold(x), ~)_theta (bold(x)_v, v)||_2^2 d v, L_D)
+    $
   - First two terms are like VAE loss.
   - The $L_D$ term integrates over all possible noise-levels in the timestep range $1, 2, ..., T$, with $bold(x)_v = overline(alpha)_v bold(x)_0 + sigma_v epsilon$ being the noised version of the original data at that noise level. $accent(bold(x), ~)_theta$ predicts the noise-free data point.
   - *Since we are integrating over signal-to-noise ratios, and not timesteps, noise schedules do not affect the VLB as long as they share the same values at $R_min$ and $R_max$, and will only affect the variance of Monte Carlo estimators for VLB.*
 
 == Reverse Variance Learning
 Classical diffusion fixes reverse variance in $q_theta (bold(x)_(t-1)|bold(x)_t) = cal(N) (mu_theta (bold(x)_t, t), Sigma_theta (bold(x)_t, t))$ so that $Sigma_theta (bold(x)_t, t)) = beta_t bold(I)$, but we can parameterize this with a form of linear interpolation as done by the iDDPM authors (again):
-  - $Sigma_theta (bold(x)_t, t)) = exp(theta dot log beta_t + (1 - theta) dot log accent(beta, ~)_t)$.
-  - The simple parameterization of the variance avoids instability of more complex ones.
+- $Sigma_theta (bold(x)_t, t)) = exp(theta dot log beta_t + (1 - theta) dot log accent(beta, ~)_t)$.
+- The simple parameterization of the variance avoids instability of more complex ones.
 
 Analytic-DPM shows a remarkable result that the optimal reverse variance can be obtained from a pre-trained score function.
 - Given a pre-trained score model, we can estimate its first- and second-order moments to obtain the optimal reverse variances.
@@ -308,3 +310,44 @@ The "ScoreFlow" Trick (The ODE Way):
 - We don't simply use the forward ODE during training for noising our data, since we would have to sequentially go through all the timesteps to generate the noised data.
 
 The straighter path of ODEs during inference, i.e. ScoreFlow, allows the use of more advanced ODE solvers, that can possibly take larger steps, without accumulating errors as easily as with SDEs.
+
+= Diffusion models for data with special structures
+Difficulties may arise, for example, when models rely on score functions that are only defined on continuous data domains, or when data reside on low dimensional manifolds.
+== Discrete Data
+Gaussian noise perturbation not suitable, so random walks in discrete data space, or random masking operations used.
+
+D3PM constructs the forward noising process with absorbing state kernels or discretized Gaussian kernels.
+
+There also exist continuous-time frameworks for discrete diffusion models, such as one leveraging Continuous Time Markov Chains that can outperform its discrete counterparts.
+
+== Data with Invariant Structures
+Problem of permutation invariant graph generation tackled with a permutation equivariant graph neural network, called EDP-GNN to parameterize the noise-conditioned score model.
+
+Noising process made invariant too:
+- Markov chains starting with an invariant prior and evolving with equivariant Markov kernels can induce an invariant marginal distribution, which can be used to enforce appropriate data invariance in molecular conformation generation.
+- Let $cal(T)$ be a rotation or translation operation. Given that:
+$ p(bold(x)_cal(T)) = p(cal(T) (bold(x)_cal(T))), $
+$
+  p_theta (bold(x)_(t-1)|bold(x)_t) = p_theta (cal(T) (bold(x)_(t-1))| cal(T) (bold(x)_t))
+$
+- This leads to invariant points in data-space corresponding to the same latent representation from the prior distribution.
+
+== Data with Manifold Structures
+The manifold hypothesis posits that natural data often resides on manifolds with lower intrinsic dimensionality.
+- Many data domains have well-known manifold structures such as climate and earth data naturally lying on a sphere.
+
+=== Known manifolds
+Score matching and score functions to Riemannian manifolds.
+- Riemannian Score-Based Generative Model (RSGM) approximates the sampling process on Riemannian manifolds using a Geodesic Random Walk.
+- Riemannian Diffusion Model (RDM) employs a variational framework to generalize the continuous-time diffusion model to Riemannian manifolds.
+
+=== Learned Manifolds
+Autoencoder used to condense the data into a lower dimensional manifold, followed by training diffusion models in this latent space.
+- Crucial to design a loss function that allows for the joint training of the autoencoder and the diffusion models.
+
+Latent Score-Based Generative Model (LSGM)---by situating the diffusion model within the latent space, the LSGM achieves faster sample generation than conventional diffusion models.
+- Additionally, the LSGM can manage discrete data by converting it into continuous latent codes.
+
+Rather than jointly training the autoencoder and diffusion model, the Latent Diffusion Model (LDM) addresses each component separately.
+- First, an autoencoder is trained to produce a low-dimensional latent space.
+- Then, the diffusion model is trained to generate latent codes.
