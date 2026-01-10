@@ -284,3 +284,27 @@ Analytic-DPM shows a remarkable result that the optimal reverse variance can be 
 - Given a pre-trained score model, we can estimate its first- and second-order moments to obtain the optimal reverse variances.
 
 == Exact Likelihood Computation
+The VLB may not be tight as it:
+- Spends "budget" on ensuring high-frequency noise is perfectly reconstructed.
+- So VLB score can indicate high likelihood, but the images produced may still look unstructured as the high-level geometry of the data is not learnt well.
+- This motivates why we want the bound to be tight.
+
+We can use a special Likelihood Weighting, where $lambda(t) = g(t)^2$ that ensures that the SDE score matching objective is mathematically equivalent to maximizing the likelihood of the ODE. As the neural network's score gets closer to the true data score, the gap between the estimated and true likelihood shrinks to zero.
+- The weighting changes the importance of certain noise levels $t$.
+- While Likelihood Weighting works well for SDE formulations, maximizing $p_theta^"ode"$ on data requires calling expensive ODE solvers for each data point $bold(x)_0$.
+- ScoreFlows works around this by using the VLB of $p_theta^"sde"$ as a proxy for $p_theta^"ode"$.
+- ScoreFlows is further improved using higher-order generalizations.
+
+The Standard "Recipe" (The SDE Way):
+- Forward: Use a Forward SDE (or just the closed-form Gaussian formula) to turn $x_0$ into noise.
+- Training: Train the model to estimate the score function.
+- Inference: Start with noise and solve the Reverse SDE. This uses "Langevin Dynamics." Every step involves the model's prediction plus a fresh injection of random noise.
+
+The "ScoreFlow" Trick (The ODE Way):
+- Inference: Use ODE solution. Allows nice things like deterministically inverting an image i.e. bijection from image to noise (and vice-versa).
+- By switching to the ODE for inference (your Euler method idea), you turn the diffusion model into a Continuous Normalizing Flow.
+- The only reason we don't always use the ODE is that, historically, SDE sampling (noisy) tended to produce slightly higher "visual quality" (richer textures) than ODE sampling, which could sometimes look "blurry" or "smooth" if the model wasn't trained perfectly.
+- However, with the Likelihood Weighting we discussed earlier, the ODE becomes much more accurate, often matching or beating the SDE in quality while being much faster.
+- We don't simply use the forward ODE during training for noising our data, since we would have to sequentially go through all the timesteps to generate the noised data.
+
+The straighter path of ODEs during inference, i.e. ScoreFlow, allows the use of more advanced ODE solvers, that can possibly take larger steps, without accumulating errors as easily as with SDEs.
