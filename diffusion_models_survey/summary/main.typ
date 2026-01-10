@@ -152,7 +152,7 @@ What does it mean to solve an SDE?
 
 The "marginal" refers to the probability distribution of the random variable $bold(x) (t)$ at a single time $t$.
 
-When we say that the ODE has the same marginals as the SDE, we mean $forall t: cal(L) (X_t^"ODE") = cal(L) (X_t^"SDE")$, where:
+When we say that the ODE has the same marginals as the SDE, we mean $forall t: cal(L) (X_t^"ODE") = cal(L) (X_t^"SDE")$ ($cal(L) (X)$ refers to law/distribution/pushforward measure of $X$), where:
   - $X_t^"SDE"$ is the random variable at time $t$ from the SDE.
   - $X_t^"ODE"$ is the random variable at time $t$ obtained by:
     - sampling a *random initial condition*,
