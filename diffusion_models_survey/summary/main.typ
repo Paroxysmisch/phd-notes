@@ -118,7 +118,7 @@ $
   &= -E_q [-log p(x_T)/q(x_T|x_0) - sum_(t>1) log (p_theta (x_(t-1)|x_t))/ q(x_(t-1)|x_t,x_0) - log (p_theta (x_0|x_1)) / q(x_1|x_0)] \
 $
 - Note that that $x_0$ can be introduced whilst maintaining equality due to the Markov property.
-- Knowing $q(x_t|x_(t-1))$ relies on knowing $q(x_(t-1)|x_t)$, which is obviously intractable, since that's the problem we are trying to solve with $p_theta$.
+- We switch from $q(x_t|x_(t-1))$ to $q(x_(t-1)|x_t)$, since it is much easier to train a neural network on each step of diffusion than the VLB of the entire diffusion chain. By flipping the conditionality, we can train the neural network on each step.
 - $q(x_(t-1)|x_0)$ and $q(x_t|x_0)$ are just Gaussians defined by our noise schedule.
 
 Various terms in the Variational/Evidence Lower Bound can also be reweighted for better sample quality.
