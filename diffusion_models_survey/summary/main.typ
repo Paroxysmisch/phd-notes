@@ -36,30 +36,30 @@ Key to success of the learnable transition kernel $p_theta (bold(x)_(t-1)|bold(x
 - The evidence is the marginal likelihood of the observed data $bold(x)_0$ under our estimated distribution $log p_theta (bold(x)_0)$, but this is intractable to compute as it requires integrating over all latent trajectories $x_(1:T)$. We want to maximize this evidence.
 - Some notation: $p_theta (bold(x)_(0:T)) eq.triple p_theta (bold(x)_0, bold(x)_1, ..., bold(x)_T)$, and in integrals, $d x_(1:T) eq.triple d x_1 d x_2 ... d x_T$ and is shorthand for integrating over all latent variables.
 - $
-    log p_theta(x_0) & =
-                       log integral p_theta(x_(0:T)) dif x_(1:T)
-                       =
-                       log integral
-                       q(x_(1:T)|x_0)
-                       frac(
-                         p_theta (x_(0:T)),
-                         q(x_(1:T)|x_0)
-                       )
-                       dif x_(1:T) \
-                     & =
-                       log (E_(q(x_(1:T)|x_0))[
-                           frac(
-                             p_theta(x_(0:T)),
-                             q(x_(1:T)|x_0)
-                           )
-                         ])
-                       >=
-                       E_(q(x_(1:T) | x_0))[ log
-                         frac(
-                           p_theta(x_(0:T)),
-                           q(x_(1:T)|x_0)
-                         )
-                       ]
+    log p_theta (x_0) & =
+                        log integral p_theta (x_(0:T)) dif x_(1:T)
+                        =
+                        log integral
+                        q(x_(1:T)|x_0)
+                        frac(
+                          p_theta (x_(0:T)),
+                          q(x_(1:T)|x_0)
+                        )
+                        dif x_(1:T) \
+                      & =
+                        log (E_(q(x_(1:T)|x_0))[
+                            frac(
+                              p_theta (x_(0:T)),
+                              q(x_(1:T)|x_0)
+                            )
+                          ])
+                        >=
+                        E_(q(x_(1:T) | x_0))[ log
+                          frac(
+                            p_theta (x_(0:T)),
+                            q(x_(1:T)|x_0)
+                          )
+                        ]
   $
 - The above ELBO is essentially re-expressing the calculation of the evidence using important sampling from a distribution we can actually sample from i.e. the forward distribution. The final step is applying Jensen's inequality.
 - Why do we need Jensen's inequality? If we directly use the evidence importance sampling estimator $(log (E_(q(x_(1:T)|x_0))[
@@ -69,7 +69,7 @@ Key to success of the learnable transition kernel $p_theta (bold(x)_(t-1)|bold(x
         )
       ]))$, it's variance explodes as we are taking the samples (to approximate the expectation) over a chain of events. Thus, we push the $log$ inwards, and this has the effect of giving us a lower bound on the true evidence, and also makes it an unbiased estimator.
 - $
-    p_theta(x_(0:T))
+    p_theta (x_(0:T))
     =
     p(x_T)
     product_(t=1)^T p_theta (x_(t-1)|x_t)
@@ -98,6 +98,28 @@ $
              )
            ] $
 - The conservatism (under-estimating the evidence) also disappears as the model improves as $log p_theta (bold(x)_0) - "ELBO" = "KL"(q(bold(x)_(1:T)|bold(x)_0)||p_theta (bold(x)_(1:T)|bold(x)_0))$.
+
+Note that the cross entropy term $E_q [- sum_(t=1)^T log q(x_t|x_(t-1))]$ is intractable to estimate, but we can work around this by conditioning on $x_0$.
+- The trick is in Appendix A of the DDPM paper and relies on computing $q(x_(t-1)|x_t, x_0)$ that is perfectly tractable, as again via Bayes' rule: $q(x_(t-1)|x_t, x_0) = (q(x_t|x_(t-1), x_0) q(x_(t-1)|x_0))/q(x_t|x_0)$.
+$
+  "ELBO"
+  & =
+  - E_q [
+    - log p(x_T)
+    -
+    sum_(t=1)^T
+    log frac(
+      p_theta (x_(t-1)|x_t),
+      q(x_t|x_(t-1))
+    )
+  ] \
+  &= -E_q [-log p(x_T) - sum_(t>1) log (p_theta (x_(t-1)|x_t))/ q(x_t|x_(t-1)) - log (p_theta (x_0|x_1)) / q(x_1|x_0)] \
+  &= -E_q [-log p(x_T) - sum_(t>1) log (p_theta (x_(t-1)|x_t))/ q(x_(t-1)|x_t,x_0) dot q(x_(t-1)|x_0)/q(x_t,x_0) - log (p_theta (x_0|x_1)) / q(x_1|x_0)] \
+  &= -E_q [-log p(x_T)/q(x_T|x_0) - sum_(t>1) log (p_theta (x_(t-1)|x_t))/ q(x_(t-1)|x_t,x_0) - log (p_theta (x_0|x_1)) / q(x_1|x_0)] \
+$
+- Note that that $x_0$ can be introduced whilst maintaining equality due to the Markov property.
+- Knowing $q(x_t|x_(t-1))$ relies on knowing $q(x_(t-1)|x_t)$, which is obviously intractable, since that's the problem we are trying to solve with $p_theta$.
+- $q(x_(t-1)|x_0)$ and $q(x_t|x_0)$ are just Gaussians defined by our noise schedule.
 
 Various terms in the Variational/Evidence Lower Bound can also be reweighted for better sample quality.
 
@@ -351,3 +373,18 @@ Latent Score-Based Generative Model (LSGM)---by situating the diffusion model wi
 Rather than jointly training the autoencoder and diffusion model, the Latent Diffusion Model (LDM) addresses each component separately.
 - First, an autoencoder is trained to produce a low-dimensional latent space.
 - Then, the diffusion model is trained to generate latent codes.
+
+= Connections with other generative models
+Frechet Inception Distance (FID) is a quantitative measure to compare the similarity of generated images to ground truth.
+
+== Variational Autoencoders and Connections with Diffusion Models
+Contain encoder $q_phi.alt (bold(z)|bold(x))$ and decoder $p_theta (bold(x)|bold(z))$, where the encoder approximately infers the latent $bold(z)$ thought to be generating the data.
+
+Variational Bayes approach used to maximize the ELBO: $cal(L) (phi.alt, theta; bold(x)) = bb(E)_q(bold(x), bold(z)) [log p_theta (bold(x), bold(z)) - log_q_theta.alt (bold(z)|bold(x))$, with $cal(L) (phi.alt, theta; bold(x)) <= log p_theta (bold(x))$.
+
+The DDPM can be conceptualized as a hierarchical Markovian VAE with a fixed encoder (structured as a linear Gaussian model).
+
+Score matching objective may be approximated by the Evidence Lower Bound (ELBO) of a deep hierarchical VAE. Consequently, optimizing a diffusion model can be seen as training an infinitely deep hierarchical VAE.
+- Consequently, Score SDE diffusion models can be interpreted as the continuous limit of hierarchical VAEs.
+- Latent Score-Based Generative Model (LSGM) shows that the ELBO can be considered a special score matching objective in the context of latent space diffusion.
+- Cross Entropy term $E_q [- sum_(t=1)^T log q(x_t|x_(t-1))]$ in ELBO is intractable, but can be transformed into a tractable score matching objective, by viewing the SGM as an infinitely deep VAE.
