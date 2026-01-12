@@ -388,3 +388,39 @@ Score matching objective may be approximated by the Evidence Lower Bound (ELBO) 
 - Consequently, Score SDE diffusion models can be interpreted as the continuous limit of hierarchical VAEs.
 - Latent Score-Based Generative Model (LSGM) shows that the ELBO can be considered a special score matching objective in the context of latent space diffusion.
 - Cross Entropy term $E_q [- sum_(t=1)^T log q(x_t|x_(t-1))]$ in ELBO is intractable, but can be transformed into a tractable score matching objective, by viewing the SGM as an infinitely deep VAE.
+
+== Generative Adversarial Networks and Connections with Diffusion Models
+GAN optimization can be viewed as a minimax optimization problem:
+$
+  min_G max_D E_(x ~ p_"data" (x)) [log D(x)] + E_(z ~ p_z (z)) [log (1-D(G(z)))]
+$
+where $G$ and $D$ are the generator and discriminator respectively.
+- Discriminator is usually a binary classifier here.
+- Goal is to achieve a Nash equilibrium.
+
+Non-overlapping of distributins of input and that of generated data causes training instability.
+- One solution is to inject noise into the discriminator input.
+- GANs can be improved by using an adaptive noise schedule from diffusion models.
+
+The slow sampling in diffusion models is due to the Gaussian assumption in the denoising process. Modelling each diffusion step by a conditional GAN can allow for larger step sizes.
+
+== Normalizing Flows and Connections with Diffusion Models
+Normalizing flows are generative models that generate tractable distributions to model
+high-dimensional data.
+
+Constructed on the change of variable formula, with the trajectory formulated by a differential equation.
+- In discrete-time setting, the mapping from data $x$ to latent $x$ is a composition of bijections: $F = F_N compose F_(N-1) compose ... compose F_1$. The trajectory ${x_1, x_2, ..., x_N}$ satisfies:
+$
+  forall i <=N. space x_i = F_i (x_(i-1), theta), space x_(i-1) = F_i^(-1) (x_i, theta)
+$
+
+Normalizing flows allow the retrieval of the exact log-likelihood through a change of variable formula, but  the bijective requirement limits modeling of complex data.
+- Models like DiffFlow relax this bijection requirement.
+
+== Autoregressive Models (ARMs) and Connections with Diffusion Models
+Sampling requires same number of calls as the data's dimensionality.
+
+Autoregressive Diffusion Model (ARDM) trained with an effective objective mirroring that of diffusion probabilistic models, isntead of causal masking, and is able to generate data in parallel.
+
+== Energy-based Models (EBMs) and Connections with Diffusion Models
+Have desirable properties, but challenges for modeling high-dimensional data.
