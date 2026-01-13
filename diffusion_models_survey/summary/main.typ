@@ -424,3 +424,9 @@ Autoregressive Diffusion Model (ARDM) trained with an effective objective mirror
 
 == Energy-based Models (EBMs) and Connections with Diffusion Models
 Have desirable properties, but challenges for modeling high-dimensional data.
+
+= Applications of diffusion models
+== Natural Language Processing
+Discrete Denoising Diffusion Probabilistic Models (D3PM) is for character-level text generation.
+
+Diffusion-LM uses continuous diffusion to turn a sequence of Gaussian noise vectors into vectors corresponding to words.
