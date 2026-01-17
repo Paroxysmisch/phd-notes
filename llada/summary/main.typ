@@ -61,4 +61,14 @@ $ -bb(E)_l,r_theta,r_l [L/l sum_(i=1)^L bold(1) [r_l^i = bold(M)] log p_theta (r
 where $L$ is the sequence length of $r_0$, $l$ is uniformly sampled from ${1,2,...,L}$, and $r_l$ is obtained by uniformly sampling $l$ tokens from $r_0$ without replacement for masking.
 
 = Experiments
+While autoregressive models optimize only left-to-right conditional probablities, LLaDA is trained to consider multiple conditioning scenarios, leading to greater flexibility, and therefore perhaps better generalization.
+
+Prior works suggests that Masked Diffusion Models (MDMs) require 16 times more computation than ARMs to achieve the same likelihood, but likelihood is an indirect metric for downstream task performance.
+- Additionally, diffusion optimizes a bound of the likelihood, which is different to ARMs.
+
+Alignment with RL not performed, potentially explaining the results being slightly behind LLaMA3 8B Instruct.
+
+Strong scalability observed with LLaDA.
+
+Block diffusion style sampling perfroms better on GSM8K and Math due to extensive EOS token padding in the SFT data, causing early termination in low-confidence remasking.
 
