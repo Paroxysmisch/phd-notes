@@ -73,3 +73,31 @@ Improving conventional algorithms such as simulated annealing through initial po
 - #link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8119216")[Another NoC optimization paper]
 
 = Logic Synthesis and Physical Design
+== Logic synthesis
+Accurate solutions required, so difficult to directly use ML algorithms to generate logic synthesis solutions, but we can use them to schedule existing traditional optimization strategies
+- #link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8942145")[LSOracle] uses DNN to dynamically decide which optimizer should be applied to different parts  of the circuit
+  - This paper could potentially be improved through the use of GNNs, in particular hypergraph GNNs
+  - The current DNN architecture works on a Karnuagh-map image (KMI) representation for circuit classification
+  - Instead, a GNN could operate directly on the partitioned graphs
+
+Like the above, there is #link("https://dl.acm.org/doi/epdf/10.1145/3195970.3196026")[additional similar work in this space]---these are called design flows where essentially transformations preserving the original logic are applied iteratively to simplify
+
+Reinforcement learning has also been applied directly to the synthesis flow, only allowing valid transformations between DAGs as actions
+- #link("https://ieeexplore.ieee.org/abstract/document/8351885?casa_token=VjXT--bj6CsAAAAA:ADc76tPptp7ETbY8hJ852B9Oa2NNB37YtZsO0i0EzLgIBHqjOfmx4bz6prFyW1mEH2Z4ienXZw")[This uses GCN for the policy function]
+
+== Placement and routing prediction
+#link("https://dl.acm.org/doi/epdf/10.1145/2228360.2228497")[PADE] enhances placement, especially regarding datapath placement
+- The work currently uses quite old ML techniques, but we could enhance this by using GNNs directly on the netlist graph
+
+Difficult to predict routing information in the placement stage
+- Lots of work on congestion location prediction
+- #link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9045178")[This is just one paper of many], and uses GANs, but we can replace this with diffusion
+- We can perhaps even incorporate the netlist information using GNNs---maybe #link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7753259")[this] paper can help with incorporation of netlist information
+- There looks to be #link("https://dl.acm.org/doi/pdf/10.1145/3400302.3415712")[some use of GNNs in this space already, but this paper is for cross-talk prediction only]
+
+Simple regression tasks to predict final wirelength, timing performance, circuit area, power consumption, clock and other parameters
+
+#link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8942063#page=2.83")[GAN-CTS] utilizes both GANs and RL for clock tree prediction and optimization, given placement information in the form of an image.
+- Could we find a better way to represent placement information instead of an image?
+
+Floorplanning is the preliminary step of the placement to roughly determine the geometric relationship among circuit modules and estimate the cost of the design---RL work here.
