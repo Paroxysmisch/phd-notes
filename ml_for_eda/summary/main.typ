@@ -101,3 +101,27 @@ Simple regression tasks to predict final wirelength, timing performance, circuit
 - Could we find a better way to represent placement information instead of an image?
 
 Floorplanning is the preliminary step of the placement to roughly determine the geometric relationship among circuit modules and estimate the cost of the design---RL work here.
+
+== Power Delivery Network (PDN) synthesis and IR (static and dynamic) drop prediction
+Quite a lot of work involving CNNs like #link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9045574")[this]
+- I don't immediately see how we can bring a meaningful improvement here, apart from just improving the image model
+- Possibly, we could use diffusion to generate the final output image/voltage map/etc.?
+
+== Design challenges for 3D integration
+Often stacking memory over logic
+
+3D integration introduced die-to-die variation, which does not exist in 2D modeling, where the data or clock path may cross different dies in through-silicon via (TSV)-based 3D IC.
+- Conventional modeling methods cannot accurately capture path delay
+- Also expanded design space and additional overhead of design evaluation bring more challenges
+
+Since VLSI circuits have a graph-like nature, #link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9218582")[GNNs have been used for tier partitioning in TP-GNN]
+
+== Other predictions
+Predict embedded memory timing failure during initial floorplan design
+
+Work on aging effect prediction
+
+== Summary
+"In the physical design stage, recent studies mainly aim to improve the efficiency and accuracy by predicting the related information that traditionally needs further simulation. A popular practice is to formulate the EDA task as a computer vision (CV) task. In the future, we expect to see more studies that incorporate advanced techniques (e.g., neural architecture search, automatic feature generation, unsupervised learning) to achieve better routing and placement results."
+
+= Lithography and mask synthesis
