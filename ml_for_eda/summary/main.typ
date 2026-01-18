@@ -162,3 +162,50 @@ Model "outputs a probability map indicating whether SRAF should be inserted at e
 - We can definitely use diffusion models here
 
 = Analog design
+Analog circuits have larger design space in terms of device size and topology than digital circuits
+
+Specifications of analog design are variable for different applications. Difficult to construct a uniform framework to evaluate and optimize different analog designs
+
+Analog signals more susceptible to noise and process-voltage-temperature variations, which lead to additional efforts in validation and verification
+
+== Design flow of analog circuits
+Design flow is system level, then circuit level, then device level, getting more concrete
+- However, there is a lot of backtracking/redesign
+- Key part is after the layout of the circuit, parasitics are extracted from the layout, and the circuit is simulated with parasitics---this is known as post-layout simulations
+- If the post-layout simulations fail to meet the specifications, parameters need to be resized and process repeated
+- Entire process can go on for many iterations
+
+== Circuit topology design automation
+Topology design is the first step, followed by determination of device sizes and parameters
+
+For common-used circuit functional units, like amplifiers, topology selection can be used, instead of creating a design from scratch
+
+Topological feature extraction aims to find hierarchical structures, with GNNs being used by #link("https://scholar.google.com/scholar_url?url=https://dl.acm.org/doi/abs/10.1145/3400302.3415685&hl=en&sa=T&oi=gsr-r&ct=res&cd=0&d=1683763317585568691&ei=XPlsaZGABNrJieoP06bqgAE&scisig=AHkA5jS46exZKg2kydUMGMRKLbAj")[this paper]
+- We can apply lots of Geometric Deep Learning (GDL) theory over here
+
+There is also topology generation with #link("https://scholar.google.com/scholar_url?url=https://ieeexplore.ieee.org/abstract/document/9054042/&hl=en&sa=T&oi=gsr-r&ct=res&cd=0&d=16925577553334743365&ei=lflsab8rzJCJ6g_Fxf3ICg&scisig=AHkA5jTTKCiPGdZ9ugNu42lN25tV")[this paper] utilizing an RNN and Hypernetwork
+- We can potentially use graph diffusion here!
+
+== Device sizing automation
+RL-based methods, but the environment still depends on costly simulation.
+- Thus, they have been augmented by transfer learning
+- GCN has been used already
+
+== Machine Learning-based prediction methods
+Cost of simulation is the main overhead of training models, especially for post-layout simulation
+- Training process sped up by using DNN and SVM to predict the simulator
+- The relative superiority of one circuit over the other is the output of the model, which is an easier problem instead of absolute value prediction
+
+Instead of raw performance, sample efficiency is a key metric here
+- While genetic algorithms are more sample-efficient here, fewer iterations are required with ML-based methods during inference, and so ML-based methods have more potential in large scale applications at the cost of increased training costs
+
+== Analog layout
+Hard problem as parasitics in the layout have a significant impact on circuit performance
+- This leads to a performance difference between pre-layout and post-layout simulations
+
+Work on using #link("https://scholar.google.com/scholar_url?url=https://dl.acm.org/doi/abs/10.1145/3316781.3317930&hl=en&sa=T&oi=gsr-r&ct=res&cd=0&d=13248261984086910834&ei=UQdtad7nOcm4ieoPof3esQc&scisig=AHkA5jR86CvCayInVgDDZ2SxA3n4")[GANs to guide layout generation], and #link("https://scholar.google.com/scholar_url?url=http://proceedings.mlr.press/v97/zhang19e.html%3Fref%3Dhttps://githubhelp.com&hl=en&sa=T&oi=gsr-r&ct=res&cd=0&d=14954427418588027035&ei=YQdtabKoMdaOieoPnNOJuQQ&scisig=AHkA5jQNe4rbDp-rKun03snGgNww")[GNNs to estimate Electromagnetic (EM) properties], and #link("https://scholar.google.com/scholar_url?url=https://ieeexplore.ieee.org/abstract/document/9218515/&hl=en&sa=T&oi=gsr-r&ct=res&cd=0&d=6180157351573865219&ei=dwdtaaTcJMyQieoPxcX9yAo&scisig=AHkA5jRbW6ZBjn535dOCY1E6-KrS")[estimate parasitics before layout]
+
+== Conclusion of analog design
+Limited datasets are a major obstacle, as so a generalizable model designed for a variety of circuits is desired in future studies
+
+= Verification and Testing
