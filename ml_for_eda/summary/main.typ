@@ -236,3 +236,9 @@ Utilization of GPU in EDA Algorithms is challenging, but extensive work is devot
 == Auto-tuning Design Flow
 Again GNN used to generate features with RL to automatically tune the placement tool parameters
 
+= Discussion
+We can group most researches into four categories:
+- decision making in traditional methods
+- performance prediction
+- black-box optimization
+- automated design
