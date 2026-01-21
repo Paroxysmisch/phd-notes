@@ -1,7 +1,9 @@
 #set text(font: "New Computer Modern")
 #show heading: it => [#it #v(0.2em)]
 
-#text(size: 2em)[#link("https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=11153923")[AI-Driven Integrated Circuit Design: A Survey of Techniques, Challenges, and Opportunities]]
+#text(size: 2em)[#link(
+  "https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=11153923",
+)[AI-Driven Integrated Circuit Design: A Survey of Techniques, Challenges, and Opportunities]]
 
 = Introduction
 Analog designs have sensitive trade-offs among multiple performance metrics
@@ -55,7 +57,9 @@ AI-driven approaches have demonstrated uncovering topologies that surpass human-
 
 Circuit optimization involves fine-tuning transistor-level parameters, such as channel dimensions, bias currents, and passive element values, to meet performance specifications such as gain, bandwidth, noise figure, and power efficiency.
 
-#link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10937153")[Review of generative AI methologies, including diffusion models, for analog IC design]
+#link(
+  "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10937153",
+)[Review of generative AI methologies, including diffusion models, for analog IC design]
 
 #link("https://arxiv.org/pdf/2308.16406")[CktGNN] is a specific GNN architecture to work with circuits, and offers a benchmark regarding topology synthesis
 

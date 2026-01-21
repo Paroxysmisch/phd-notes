@@ -1,7 +1,9 @@
 #set text(font: "New Computer Modern")
 #show heading: it => [#it #v(0.2em)]
 
-#text(size: 2em)[#link("https://arxiv.org/pdf/2502.09992")[Large Language Diffusion Models]]
+#text(size: 2em)[#link(
+  "https://arxiv.org/pdf/2502.09992",
+)[Large Language Diffusion Models]]
 
 = Abstract
 Forward data masking and reverse generation (mask predictor) process parameterized by a Transformer to predict masked tokens.
@@ -23,7 +25,9 @@ Reverse process iteratively predicts masked tokens as $t$ moves from $1 -> 0$.
 The mask predictor $p_theta (dot|x_t)$ predicts all masked tokens $bold(M)$ simultaneously.
 
 Cross-entropy loss that is computed only on masked tokens is:
-$ cal(L) (theta) eq.delta -bb(E)_t,x_theta,x_t [1/t sum_(i=1)^L bold(1) [x_t^i = bold(M)] log p_theta (x_0^i|x_t)] $
+$
+  cal(L) (theta) eq.delta -bb(E)_t,x_theta,x_t [1/t sum_(i=1)^L bold(1) [x_t^i = bold(M)] log p_theta (x_0^i|x_t)]
+$
 where $x_0$ is a training sample, $t ~ cal(U) [0,1]$ $x_t$ sampled from the forward process, and $L$ sequence length.
 
 Both the forward and reverse processes can be viewed as discretizations of DDPM, and thus dealing with the fact that unlike the continuous case where we can partially remove information from say an image, we have to either completely mask, or unmask tokens.
@@ -57,7 +61,9 @@ An intermediate sampling step from time $t in (0,1]$ to $s in [0,t)$ consists of
 Llada enables flexible sampling, supporting autoregressive and block diffusion, but diffusion sampling yields the best performance.
 
 For conditional likelihood evaluation, while the loss above could be utilized, the following equivalent form exibits lowest variance and is more stable:
-$ -bb(E)_l,r_theta,r_l [L/l sum_(i=1)^L bold(1) [r_l^i = bold(M)] log p_theta (r_0^i|p_0,r_l)] $
+$
+  -bb(E)_l,r_theta,r_l [L/l sum_(i=1)^L bold(1) [r_l^i = bold(M)] log p_theta (r_0^i|p_0,r_l)]
+$
 where $L$ is the sequence length of $r_0$, $l$ is uniformly sampled from ${1,2,...,L}$, and $r_l$ is obtained by uniformly sampling $l$ tokens from $r_0$ without replacement for masking.
 
 = Experiments

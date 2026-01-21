@@ -1,9 +1,16 @@
 #set text(font: "New Computer Modern")
 #show heading: it => [#it #v(0.2em)]
-#let highlight(content) = box(fill: yellow.lighten(70%), inset: 1.5em, radius: 1.5em, stroke: yellow.lighten(20%))[#content]
+#let highlight(content) = box(
+  fill: yellow.lighten(70%),
+  inset: 1.5em,
+  radius: 1.5em,
+  stroke: yellow.lighten(20%),
+)[#content]
 #show link: set text(fill: blue)
 
-#text(size: 2em)[#link("https://dl.acm.org/doi/pdf/10.1145/3451179")[ML for EDA]]
+#text(size: 2em)[#link(
+  "https://dl.acm.org/doi/pdf/10.1145/3451179",
+)[ML for EDA]]
 
 = Introduction
 ML for EDA space covers almost all stages in the chip design flow: design space reduction + exploration, logic synthesis, placement, routing, testing, verification, and manufacturing.
@@ -53,14 +60,16 @@ Acquiring accurate result estimation at HLS stage is difficult due to complex op
 - Trade-off between efficiency and accuracy
 
 ML methods to predict timing, resource usage, and operation delay from HLS design
-  - Features (such as clock periods, resource utilization + availability, etc.) extracted from HLS reports used as inputs and target is to predict the implementation reports
-  - Application characteristics, and target FPGA specifications also used as inputs
-  - Also possible in an active learning setting where the predictions are used to inform new designs that are tested, to produce data to train the predictor, to refine predictions
+- Features (such as clock periods, resource utilization + availability, etc.) extracted from HLS reports used as inputs and target is to predict the implementation reports
+- Application characteristics, and target FPGA specifications also used as inputs
+- Also possible in an active learning setting where the predictions are used to inform new designs that are tested, to produce data to train the predictor, to refine predictions
 
 #highlight[
-Work done on performing better operation delay estimation
+  Work done on performing better operation delay estimation
   - Simple additive delay estimation is inaccurate due to the post-implementation optimizations
-  - #link("https://scholar.google.com/scholar_url?url=https://dl.acm.org/doi/abs/10.1145/3400302.3415657&hl=en&sa=T&oi=gsr-r&ct=res&cd=0&d=8752384747588768683&ei=_4xrab7sLNaOieoPnNOJuQQ&scisig=AHkA5jTQfFZ9mNScJHY_Es9kj598")[A customized GNN model is built to capture the association between operations from the dataflow graph, and train this model to infer the mapping choices about hardened blocks.]
+  - #link(
+      "https://scholar.google.com/scholar_url?url=https://dl.acm.org/doi/abs/10.1145/3400302.3415657&hl=en&sa=T&oi=gsr-r&ct=res&cd=0&d=8752384747588768683&ei=_4xrab7sLNaOieoPnNOJuQQ&scisig=AHkA5jTQfFZ9mNScJHY_Es9kj598",
+    )[A customized GNN model is built to capture the association between operations from the dataflow graph, and train this model to infer the mapping choices about hardened blocks.]
   - Our work can improve on this by using hypergraph GNNs. The issue is that there is no inherent hypergraph structure, so we will need to experiment here
   - We could, for example, insert new hyper-edges every Combinational Island—all nodes located between two register boundaries. This helps the HGNN understand the "Timing Slack" of that specific group, as the delay of the longest path in that hyperedge determines the clock frequency.
   - The key thing is that we group potential groups of nodes with hyperedges
@@ -70,7 +79,9 @@ Work done on performing better operation delay estimation
   - Apparently, a sheaf's restriction map allows learning specific transformations to get from one node to the next, which mirrors the dataflow in a very natural way
   - Sheafs can outperform GCNs in domains where relations between nodes are asymmetric and signed according to the #link("https://arxiv.org/pdf/2012.06333")[Sheaf neural Networks paper]
   - For the simple task of identifying clusters, perhaps hypergraphs are better, but sheafs may be better for tasks like delay prediction
-  - #link("https://dl.acm.org/doi/pdf/10.1145/3489517.3530408")[This is a benchmarking paper, very useful for data]
+  - #link(
+      "https://dl.acm.org/doi/pdf/10.1145/3489517.3530408",
+    )[This is a benchmarking paper, very useful for data]
 ]
 
 Cross-platform performance estimation e.g. to estimate the speedup of an application for a target FPGA over an ARM processor
@@ -96,7 +107,9 @@ Improving conventional algorithms such as simulated annealing through initial po
     - The idea is that the optimization landscape near the optimal design is convex, so as long as we can find good starting points, we can hill-climb/descend to the optimal simply by greedy steps taken via the cost function
     - However, key is finding those starting points, which is done by the evaluation function, and this is where we could potentially use a GNN
 ]
-- #link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8119216")[Another NoC optimization paper]
+- #link(
+    "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8119216",
+  )[Another NoC optimization paper]
 
 = Logic Synthesis and Physical Design
 == Logic synthesis
@@ -109,7 +122,9 @@ Accurate solutions required, so difficult to directly use ML algorithms to gener
 Like the above, there is #link("https://dl.acm.org/doi/epdf/10.1145/3195970.3196026")[additional similar work in this space]---these are called design flows where essentially transformations preserving the original logic are applied iteratively to simplify
 
 Reinforcement learning has also been applied directly to the synthesis flow, only allowing valid transformations between DAGs as actions
-- #link("https://ieeexplore.ieee.org/abstract/document/8351885?casa_token=VjXT--bj6CsAAAAA:ADc76tPptp7ETbY8hJ852B9Oa2NNB37YtZsO0i0EzLgIBHqjOfmx4bz6prFyW1mEH2Z4ienXZw")[This uses GCN for the policy function]
+- #link(
+    "https://ieeexplore.ieee.org/abstract/document/8351885?casa_token=VjXT--bj6CsAAAAA:ADc76tPptp7ETbY8hJ852B9Oa2NNB37YtZsO0i0EzLgIBHqjOfmx4bz6prFyW1mEH2Z4ienXZw",
+  )[This uses GCN for the policy function]
 
 == Placement and routing prediction
 #link("https://dl.acm.org/doi/epdf/10.1145/2228360.2228497")[PADE] enhances placement, especially regarding datapath placement
