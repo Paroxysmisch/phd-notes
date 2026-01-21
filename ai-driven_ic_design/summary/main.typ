@@ -36,7 +36,7 @@ Reinforcement Learning:
 
 Supervised Learning:
 - Commonly used to regress performance metrics e.g. gain, power-added efficiency, and S-parameters directly from circuit design variables
-- CNNs used when circuit design exhibits spatial structure e.g. in layout imges or metal-dielectric patterns in EM simulations
+- CNNs used when circuit design exhibits spatial structure e.g. in layout images or metal-dielectric patterns in EM simulations
 - GNNs used on netlists
 
 Unsupervised Learning:
@@ -83,5 +83,8 @@ Significant challenge is that a lot of the current work is *layout-unaware*, so 
 - #link("https://www.mdpi.com/2079-9292/12/2/465/pdf?version=1673917973")[GNN-based parasitic predictors] have been integrated directly into the optimization loop to provide layout-aware feedback at design time
 
 == Circuit layout
+Layout matters in analog or RFIC domain due to parasitic effects, signal coupling, and thermal considerations
+- Additionally, we have considerations such as symmetry constraints, minimizing offsets, and managing signal path integrity to avoid crosstalk
+- Also, manufacturability requirements
 
 == Circuit testing and adaptation

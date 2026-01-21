@@ -1,5 +1,7 @@
 #set text(font: "New Computer Modern")
 #show heading: it => [#it #v(0.2em)]
+#let highlight(content) = box(fill: yellow.lighten(70%), inset: 1.5em, radius: 1.5em, stroke: yellow.lighten(20%))[#content]
+#show link: set text(fill: blue)
 
 #text(size: 2em)[#link("https://dl.acm.org/doi/pdf/10.1145/3451179")[ML for EDA]]
 
@@ -55,9 +57,21 @@ ML methods to predict timing, resource usage, and operation delay from HLS desig
   - Application characteristics, and target FPGA specifications also used as inputs
   - Also possible in an active learning setting where the predictions are used to inform new designs that are tested, to produce data to train the predictor, to refine predictions
 
+#highlight[
 Work done on performing better operation delay estimation
   - Simple additive delay estimation is inaccurate due to the post-implementation optimizations
   - #link("https://scholar.google.com/scholar_url?url=https://dl.acm.org/doi/abs/10.1145/3400302.3415657&hl=en&sa=T&oi=gsr-r&ct=res&cd=0&d=8752384747588768683&ei=_4xrab7sLNaOieoPnNOJuQQ&scisig=AHkA5jTQfFZ9mNScJHY_Es9kj598")[A customized GNN model is built to capture the association between operations from the dataflow graph, and train this model to infer the mapping choices about hardened blocks.]
+  - Our work can improve on this by using hypergraph GNNs. The issue is that there is no inherent hypergraph structure, so we will need to experiment here
+  - We could, for example, insert new hyper-edges every Combinational Island—all nodes located between two register boundaries. This helps the HGNN understand the "Timing Slack" of that specific group, as the delay of the longest path in that hyperedge determines the clock frequency.
+  - The key thing is that we group potential groups of nodes with hyperedges
+  - We can also construct the hyperedges on the fly, by recalculating the k-nearest neighbors for each node and grouping them with a hyperedge
+  - Apart from the discovery of adder chains, where all the nodes types are the same (adders), grouping of nodes like adder + sign-extension + mux requires heterophilic capabilities
+  - Sheafs are very good for heterophilic use cases. They also prevent over-smoothing, allowing us to have deeper layers
+  - Apparently, a sheaf's restriction map allows learning specific transformations to get from one node to the next, which mirrors the dataflow in a very natural way
+  - Sheafs can outperform GCNs in domains where relations between nodes are asymmetric and signed according to the #link("https://arxiv.org/pdf/2012.06333")[Sheaf neural Networks paper]
+  - For the simple task of identifying clusters, perhaps hypergraphs are better, but sheafs may be better for tasks like delay prediction
+  - #link("https://dl.acm.org/doi/pdf/10.1145/3489517.3530408")[This is a benchmarking paper, very useful for data]
+]
 
 Cross-platform performance estimation e.g. to estimate the speedup of an application for a target FPGA over an ARM processor
 - Could be useful when porting an ML model to different accelerator hardware
@@ -70,6 +84,18 @@ Pragmas in HLS are tunable synthesis options
 Improving conventional algorithms such as simulated annealing through initial point selection, generation of new samples, and hyper-parameter selection
 - #link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8587765")[STAGE] allows picking of initial points
 - It is used for #link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7556373")[DSE in 3D Network-on-Chip (NoC)], but I think we can take a radically different approach here, and form this as a GNN link prediction problem. Potential use case for hypergraphs too. Also potential for the use of graph diffusion. This is a constrained optimization problem where one of the key constraints is communication frequency.
+#highlight[
+  3D NoC
+  - Not only energy efficiency, but reliability is a concern too---workload induced stress increases the resistance of Through-Silicon Vias (TSVs), leading to different Mean Time To Failure (MTTF) for different TSVs
+  - Vertical connections work as long-range shortcuts for Small World (SW) networks
+  - SW networks with small average path length help energy efficiency and reliability as average path length grows insignificantly due to link failures
+  - Mesh topology suffers from high network latency and energy consumption due to multihop communication links
+  - STAGE algorithm is used, which relies on an evaluation function---could replace with a small GNN?
+    - It seems like this evaluation function is like the value function in RL where it captures the best possible (undiscounted in this case) reward from this design (RL state equivalent)
+    - The actual search is then done by the cost function, which only looks at the current state's direct optimization, but doesn't consider future steps
+    - The idea is that the optimization landscape near the optimal design is convex, so as long as we can find good starting points, we can hill-climb/descend to the optimal simply by greedy steps taken via the cost function
+    - However, key is finding those starting points, which is done by the evaluation function, and this is where we could potentially use a GNN
+]
 - #link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8119216")[Another NoC optimization paper]
 
 = Logic Synthesis and Physical Design
