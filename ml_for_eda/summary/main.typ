@@ -1,10 +1,11 @@
 #set text(font: "New Computer Modern")
 #show heading: it => [#it #v(0.2em)]
-#let highlight(content) = box(
+#let highlight(content) = block(
   fill: yellow.lighten(70%),
   inset: 1.5em,
   radius: 1.5em,
   stroke: yellow.lighten(20%),
+  breakable: true,
 )[#content]
 #show link: set text(fill: blue)
 
@@ -106,6 +107,12 @@ Improving conventional algorithms such as simulated annealing through initial po
     - The actual search is then done by the cost function, which only looks at the current state's direct optimization, but doesn't consider future steps
     - The idea is that the optimization landscape near the optimal design is convex, so as long as we can find good starting points, we can hill-climb/descend to the optimal simply by greedy steps taken via the cost function
     - However, key is finding those starting points, which is done by the evaluation function, and this is where we could potentially use a GNN
+  - We could also change the problem so that instead of the constraint of communication frequency being point-to-point, it is groups of cores that need to communicate---this way we could introduce the need for a hypergraph GNN
+  - Graph diffusion just seems a very interesting way to one-shot this problem, but improving the current STAGE-based method with GNNs and possibly incorporating hypergraph via hyperedge constraints seems a good idea for a first step
+  - Booksim(2) is a simulator that we can use for cycle-accurate simulation results
+  - I think they use Gem 5 though---we need to be able to define a custom topology and the traffic frequencies between any pair of nodes
+  - This work also ignores the presence of directories to maintain cache-coherence
+    - We could form a hypergraph here since a memory access is core -> directory -> core
 ]
 - #link(
     "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8119216",
@@ -135,6 +142,10 @@ Difficult to predict routing information in the placement stage
 - #link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9045178")[This is just one paper of many], and uses GANs, but we can replace this with diffusion
 - We can perhaps even incorporate the netlist information using GNNs---maybe #link("https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7753259")[this] paper can help with incorporation of netlist information
 - There looks to be #link("https://dl.acm.org/doi/pdf/10.1145/3400302.3415712")[some use of GNNs in this space already, but this paper is for cross-talk prediction only]
+
+#highlight[
+  Congestion location prediction via diffusion models
+]
 
 Simple regression tasks to predict final wirelength, timing performance, circuit area, power consumption, clock and other parameters
 
