@@ -216,3 +216,97 @@ A key bottleneck of LLM inference is skinny matrix multiplications (where at lea
 - Flash-LLM proposes a new format called Tiled-CSL to do this
 
 DejaVu predictions contextutal sparsity on the fly given inputs to each layer, avoiding retraining and preserving the LLM's in-context learning ability
+
+Efficient unstructured prunng for Mamba models
+- Gradient aware magnitude pruning
+- Iterative pruning schedule
+- Global pruning strategy
+
+=== Attention sparsity
+Very useful during prefilling phase
+
+Static sparsity:
+- Sparse Transformer
+- StreamingLLM
+- Bigbird
+- Longformer
+- All use a manual combination of global and local patterns to replace full attention patterns
+
+Dynamic sparsity:
+- Adaptively sparse attention replaces softmax with $alpha$-entmax, where low-scoring words receive precisely zero weight and drops parts of the context that are no longer required for future generation
+- Reformer replaces dot-product attention by using locality-sensitive hashing, reducing complexity from $cal(O) (L^2)$ to $cal(O) (L log L)$
+- Sparse Flash Attention extends FlashAttention with key/query dropping and hashing-based attention
+- Sparse Sinkhorn Attention uses a learned sorting network to align keys with their relevant query buckets
+- $"H"_2"O"$ observes a small portion of tokens contribute most to attention scores, and uses that to guide KV cache eviction policy
+
+= Fast decoding
+Greedy sampling of taking the highest probability token at each step leads to lack of diversity in the generated results
+
+Nucleus sampling, otherwise known as top-$p$ sampling) considers multiple candidates during generation by setting a cumulative probability threshold $p$, allowing for sampling within a certain range
+- More flexible than top-$k$ sampling as the candidate pool's size is based on the model's certainty in nucleus sampling
+
+Nucleus sampling process more precisely from #link("https://en.wikipedia.org/wiki/Top-p_sampling")[Wikipedia]:
+- The model calculates the probabilities for all possible next tokens.
+- The tokens are sorted by their probability in descending order.
+- The nucleus is formed by selecting tokens from the top of the list until their cumulative probability exceeds the predefined threshold, p.
+- The probabilities of tokens within this nucleus are then rescaled so that they sum to 1. All tokens outside the nucleus are discarded (given a probability of 0).
+- The final next token is randomly sampled from this new, smaller distribution.
+
+== Speculative decoding
+Particularly useful when generating low-entropy tokens e.g. in coding, which is very structured
+
+Draft model quickly generates multiple candidate words, which are evaluated in parallel by the main/large model, calculating their probabilities/scores
+
+Common draft model choices include a specific layer from the Transformer model, leveraging existing architecture for feature extraction, or training a smaller, separate model
+
+== Skip layer
+Dynamically and selectively skip certain layers during model inference
+- Model evaluates the importance of each layer for the current task
+- Optimization to learn to skip layers required during training through policy gradients (or other RL methods)
+
+== CPU
+ML-SpecQD uses multiple layers of draft models
+
+== GPU
+Multiple draft predictions made in parallel, and the longest prefix verified by the scoring model is used as the final output
+
+Lookahead decoding uses Guess-and-Verify paradigm, generating draft tokens via $n$-gram, and verifying the draft tokens during forward simultaneously
+- Additional tree-based attention mechanism to ensure correct relationship between draft tokens
+
+Medusa adds extra decoding heads to generate multiple subsequent tokens in parallel
+
+EAGLE uses a single transformer layer fro the LLM as the draft model, combining it with feature and token embeddings of the input
+
+Ouroboros constructs a phrase candidate pool for draft token generation?
+
+Sequoia uses dynamic programming and a hardware-aware tree optimizer to find the optimal tree structure based on runtime features and given hardware platform
+- Novel sampling and verification method
+
+Self-speculative decoding aims to go without the need of auxiliary models
+
+Draft&Verify selectively skps certain intermediate layers
+
+Kangaroo uses a fixed shallow sub-network of the LLM as the draft model, with the remaining layers serving as the target model, with an adapter module also trained to follow the sub-network  to enhance the representation ability of the draft model
+
+LayerSkip proposes exit at early layers, verifying and correcting with remaining layers of the model
+- At training time, dropout rate for later layers is higher
+
+LLMA uses observation that there are abundant identical text spans between the decoding result by an LLM and the reference that is available in many real-world scenarios (e.g., retrieved documents)
+
+Asynchronous Multi-device Speculative Decoding (AMUSD) decouples the draft and verify phases into a continuous, and asynchronous approach, with both models predicting independently on separate GPUs
+- PipeSpec generalises this to $k$ models
+
+Adaptix is a tri-gram matrix-based LLM representation to dynamically approximate LLM output distribution
+
+SPIN dynamically picks between multiple small prediction models
+
+Judge Decoding proposes a new judgement scheme that is more versatile so that poor alignment between draft and target does not lead to rejection of objectively correct continuations
+
+Falcon proposes the Coupled Sequential Glancing Distillation technique to fortify inter-token dependencies within the same block during draft model training to increase speculation accuracy
+
+AdaInfer statistically analyzes the activated layers across tasks, and uses simple algorithm to determine inference termination, but overhead makes this unsuitable for decoding
+- RAEE builds on this with a retrieval database?
+
+MOD decides whether to skip _current_ layer by pretraining the model to add a router in each layer like Mixture-of-Experts (MoE)
+
+= Operator optimization
