@@ -310,3 +310,33 @@ AdaInfer statistically analyzes the activated layers across tasks, and uses simp
 MOD decides whether to skip _current_ layer by pretraining the model to add a router in each layer like Mixture-of-Experts (MoE)
 
 = Operator optimization
+Operator fusion to reduce storage + transmission needs of intermediate data
+
+Use linear approximations to nonlinear function approximation
+
+Coarse-grained processing merges multiple fine-grained computation units to avoid frequent resource scheduling overheads and contention
+
+Storage optimization to minimize latency by focussing on organizing data location and access patterns
+
+== CPU
+FlexInfer uses asynchronous prefetching, balanced memory locking and flexible tensor preservation to enhance memory efficiency and relieve bandwidth bottlenecks
+
+== GPU
+FlashAttention is an example of operator fusion
+- FlashDecoding proposes additionally the parallel computation along the feature dimension
+- FlashDecoding++ optimizes the synchronization overhead in softmax computation by pre-determining a unified maximum based on statistical analysis
+
+FlashDecoding++ also introduces FlatGEMM that employs fine-grained tiling and double buffering techniques to improve parallelism and reduce the latency of memory access
+- Also dynamically selects the most efficient operator based on the input with a heuristic
+
+ByteTransformer and DeepSpeed uses operator fusion where main operator like GEMM is fused with lightweight operators e.g. residual adding, layer norm, and activation functions into a single kernel
+
+SpInfer is a framework tailored for sparsified LLM inference on GPUs
+- Integrates TensorCore-Aware Bitmap Encoding (TCA-BME) to minimize indexing overhead and integrates an optimized SpMM kernel with Shared Memory Bitmap Decoding (SMBD) and an asynchronous pipeline
+
+FlashFormer exploits increased overlapping of memory movement for single-batch inference
+
+Asynchronous KV cache prefetching
+
+== FPGA
+HAAN exploits correlation in normalization statistics among adjacent layers to bypass normalization computation by estimating statistics from preceding layers.
