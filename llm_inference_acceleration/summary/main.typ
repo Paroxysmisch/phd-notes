@@ -340,3 +340,21 @@ Asynchronous KV cache prefetching
 
 == FPGA
 HAAN exploits correlation in normalization statistics among adjacent layers to bypass normalization computation by estimating statistics from preceding layers.
+
+= Heterogeneous cooperation
+Combine different computing platforms, to distribute tasks to the most suitable hardware
+
+For heterogeneous cooperation, bandwidth often restricts computational performance
+- High-speed on-chip and chip-to-chip interconnect e.g. Compute Express Link (CXL) and NVLink
+
+== Homogeneous cooperation
+Distributed computing like model parallelism aimed at addressing memory limitations
+
+= Further discussion
+Multimodality, inference-time compute (Chain-of-Thought (CoT)), and higher inference energy efficiency trends looking into the future
+
+Inference time compute changes runtime breakdown of LLM inference
+- Prefill stage much bigger part, with decode becoming a smaller part
+- Prefill increases in part due to need to merge human input tokens with the template input tokens
+- In the iterative process, intermediate output tokens are cumulatively fed back as inputs, increasing prefill length
+- Introduction of Process Reward Model (PRM) accounts for 21.7% of the time
