@@ -1,7 +1,9 @@
 #set text(font: "New Computer Modern")
 #show heading: it => [#it #v(0.2em)]
 
-#text(size: 2em)[#link("https://openreview.net/pdf?id=YFxfcQMLWX")[PADRe: A Unifying Polynomial Attention Drop-in Replacement for Efficient Vision Transformer]]
+#text(size: 2em)[#link(
+  "https://openreview.net/pdf?id=YFxfcQMLWX",
+)[PADRe: A Unifying Polynomial Attention Drop-in Replacement for Efficient Vision Transformer]]
 
 = Abstract
 Several recent alternative attention mechanisms e.g. Hyene, Mamba, the original self-attention mechanism, etc. can be viewed as specific instances of PADRe
@@ -41,9 +43,7 @@ Three main components:
 
 == Linear transformations
 $ "for" i = 1, ..., d, \
-
-  Y_i = A_i X B_i
-$, where $d$ is the degree of the framework, and $A_i$ and $B_i$ have structure e.g. convolutions imposed on them for efficient computation
+Y_i = A_i X B_i $, where $d$ is the degree of the framework, and $A_i$ and $B_i$ have structure e.g. convolutions imposed on them for efficient computation
 
 Left- and right-multiplications create mixing among tokens (in the spatial dimension in the case of visual input), and in the embedding/channel dimension, respectively
 
@@ -51,8 +51,8 @@ Left- and right-multiplications create mixing among tokens (in the spatial dimen
 Construct polynomial functions of the input
 
 $
-  Z_1 &= Y_1, \
-  Z_(i+1) &= (C_i Z_i D_i) dot.o Y_(i+1), space "for" i in {1, ..., d-1}
+      Z_1 & = Y_1, \
+  Z_(i+1) & = (C_i Z_i D_i) dot.o Y_(i+1), space "for" i in {1, ..., d-1}
 $
 
 The elements of $Z_i$ are homogeneous polynomials of degree $i$ in the input $X$

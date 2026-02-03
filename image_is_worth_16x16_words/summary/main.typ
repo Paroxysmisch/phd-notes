@@ -1,7 +1,9 @@
 #set text(font: "New Computer Modern")
 #show heading: it => [#it #v(0.2em)]
 
-#text(size: 2em)[#link("https://arxiv.org/pdf/2010.11929")[An Image is Worth 16$times$16 Words: Transformers for Image Recognition at Scale]]
+#text(size: 2em)[#link(
+  "https://arxiv.org/pdf/2010.11929",
+)[An Image is Worth 16$times$16 Words: Transformers for Image Recognition at Scale]]
 
 = Introduction
 Large scale training with lots of data trumps inductive bias---so we should focus on computationally efficient architectures that can learn inductive biases via lots of data
