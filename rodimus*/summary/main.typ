@@ -47,7 +47,7 @@ This can be equivalently be rewritten as (we are simply normalizing after adding
 #let oo = $bold(o)$
 #let SS = $bold(S)$
 #let zz = $bold(z)$
-#let AA = $bold(a)$
+#let AA = $bold(A)$
 #let BB = $bold(B)$
 #let CC = $bold(C)$
 #let uu = $bold(u)$
@@ -91,4 +91,41 @@ Important lessons for design of $AA_t$ and $BB_t$:
 - Making $AA_t$ and $BB_t$ to be functions of the input $uu_t$ enable dynamic adjustments over time in a data-dependent manner
 - Designs for gating mechanisms must be compatible with GPU acceleration, ensuring that the recurrent expression in @eq:recurrent_expression aligns with a parallel format e.g. parallel scan in Mamba
 
+= Methodology
+All existing linear attention models can be expressed recurrently as:
+#let aalpha = $bold(alpha)$
+#let bbeta = $bold(beta)$
+#let ttau = $bold(tau)$
+$
+  SS_t &= (aalpha_t^top bbeta_t) dot.o SS_(t-1) + (hat(aalpha)_t^top hat(bbeta)_t) dot.o (kk_t^top vv_t) \
+  &= (aalpha_t^top bbeta_t) dot.o SS_(t-1) + (hat(aalpha)_t dot.o kk_t)^top (hat(bbeta_t) dot.o vv_t)
+$
+where $aalpha_t in RR^(1 times n)$ and $bbeta_t in RR^(1 times m)$ denotes the gating mechanism ($n$ is the key dimension and $m$ is the value dimension, with $m >> n$), with the hat versions being negatively correlated, allowing for selection between the new input and the previous state
+- By substituting this into @eq:recurrent_expression, we find that linear attention models capture first-order dependencies within sequences in a position-aware manner, so we do not need positional embeddings
+- In contrast, the original softmax attention captures only second-order dependencies in a position-agnostic framework, necessitating positional embeddings
+- Within the expansion, a $product_(j=(i+1))^t alpha_j$ term regulates absolute positional information, with $aalpha_j dot.o hat(aalpha)_i$ acting as relative positional information akin to RoPE or ALiBi
+- Likewise, another $product_(j=(i+1))^t bbeta_j$ term also exists, acting as redundant positional information, but due to its higher $m$ dimensionality, it can impede training efficiency and speed, so Rodimus only focuses on optimizing the design of $aalpha_t$, while forcing $bbeta_t = bold(1)_m$ for all $t$
 
+== Design of $aalpha_t$, $hat(aalpha)_t$, and $hat(bbeta)_t$
+$aalpha_t$ is designed such that complete oblivion of the previous state is prevented
+
+$hat(aalpha)_t$ is designed such that although it is negatively correlated with $aalpha_t$, it is asymmetric, introducing greater flexibility into the state transition equation
+
+Additional temperature gate $ttau_t$ governs the sharpness or sensitivity of the selection gate $bold(g)_t$---this temperature helps sharpen the original selection gate $bold(g)_t$, facilitating more aggressive filtering of information
+
+$hat(bbeta)_t$ uses a low-rank formulation to mitigate noise in the input while keeping the number of model parameters manageable
+
+For something to be a valid selection mechanism, as $AA_t$ goes up, $BB_t$ must go down i.e. the product of the gradients of $AA_t$ and $BB_t$ with respect to the input must be negative
+
+== The overall Rodimus block
+Computation of control $uu_t = kk_t^top vv_t$ can be interpreted as the state expansion operation within SSMs
+
+Standard Recurrent Neural Networks (and some basic Linear Attention models) process tokens one by one in total isolation before they hit the recurrent state. ShortConv changes this by allowing each timestep $t$ to see a tiny bit of its immediate neighbors (e.g., $t-1$ and $t-2$) before the gating logic is even calculated.
+- Local Aggregation: it blends the current input $x_t$ with the preceding few tokens.
+- Feature Evolution: instead of $bold(g)_t$ and $ttau_t$ being based purely on a single vector $xx_t$, they are now based on a local window.
+- It adds local shift invariance
+
+== Shared-Key Attention for Lossless Head Compression
+If we use the same key projection for all heads, the query projections per head can actually compensate for this by turning the single key projection into a key projection for a particular head, as part of the _query_ projection
+- Thus, we can save on memory, without sacrificing expressivity
+- If we use the same value projection for all the heads, we actually lose expressivity
