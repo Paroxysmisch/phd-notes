@@ -2,7 +2,9 @@
 #show heading: it => [#it #v(0.2em)]
 #set math.equation(numbering: "(1)")
 
-#text(size: 2em)[#link("https://arxiv.org/pdf/2210.17323")[GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers]]
+#text(size: 2em)[#link(
+  "https://arxiv.org/pdf/2210.17323",
+)[GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers]]
 
 = Abstract
 One-shot (post-training) weight quantization method
